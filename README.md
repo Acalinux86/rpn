@@ -13,20 +13,26 @@ It reads an input file containing space-separated tokens, converts them into typ
 
 ## Usage
 
+### Reading From a File
 ``` bash
-$ ./rpn.py <input_file>
+$ ./rpn.py --file <input_file>
 ```
 
-Example test file 4 in test/:
-
+###### Example test file 4 in test/:
 ``` bash
 13 12 +
 ```
 
 Example output:
-
 ``` bash
 [INFO] Token: RPN_Token(token_type=<RPN_TokenType.TOKEN_DIGIT: 1>, token='25.0')
+```
+
+### Reading From the Standard Input
+``` bash
+$ rpn> 3 5 +
+$ [INFO] Token: RPN_Token(token_type=<RPN_TokenType.TOKEN_DIGIT: 1>, token='8.0')
+$ rpn>
 ```
 
 ## Input Format
