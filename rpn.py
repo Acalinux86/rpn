@@ -68,7 +68,7 @@ def rpn_stack_push(stack: RPN_Stack, token: RPN_Token) -> bool:
     stack.stack_slots.append(token)
     stack.stack_count += 1
     if TRACE:
-        print(f"[INFO] Pushing {token}")
+        print(f"[PUSH] {token}")
     return True
 
 # Function that Pops a token from stack
@@ -79,7 +79,7 @@ def rpn_stack_pop(stack: RPN_Stack) -> RPN_Token:
     stack.stack_count = stack.stack_count - 1
     res = stack.stack_slots.pop(stack.stack_count)
     if TRACE:
-        print("[INFO] Popping %s" % res.token)
+        print(f"[POP ] {res}")
     return res
 
 # Function that Dumps Stack into stdout
