@@ -14,7 +14,6 @@ RPN_INITIAL_STACK_CAP = 256
 # Shifts Command-Line Arguments
 def rpn_shift_args(argv) -> Tuple[int , str]:
     if (len(argv) == 0):
-        print(f"[ERROR] Nothing to Pop")
         return 1 , " "
     else:
         return 0, argv.pop(0)
@@ -161,37 +160,84 @@ def rpn(stack: RPN_Stack, test_list: List[RPN_Token]) -> bool:
 
     return True # Exit With Success
 
+def rpn_usage(subcommand: str) -> None:
+    print("[USAGE] %s arg [input-file]" % subcommand)
+    print("[USAGE] arg:")
+    print("[USAGE]     --read            -- Read From Stdin")
+    print("[USAGE]     --file <input-file> -- Read From a Input File")
+
 # The Entry Point of the Program
 def main() -> int:
     argv = sys.argv[:] # The Command line args list
 
     err, subcommand = rpn_shift_args(argv) # Extract Program Name
     if err > 0:
+        rpn_usage(subcommand)
         return err
 
     # If No Test File is provided Exit and print Usage
     if len(sys.argv) <= 0:
-        print("[USAGE] %s <input_file>" % subcommand)
+        rpn_usage(subcommand)
         return 1
 
-    err, path = rpn_shift_args(argv) # Extract Test File Name
+    err, arg = rpn_shift_args(argv) # Extract Arg Name
     if err > 0:
+        rpn_usage(subcommand)
         return err
 
-    # Read the Entire test file into list in memory
-    char_list = rpn_read_entire_file(path)
+    match arg:
+        case "--file":
+            err, path = rpn_shift_args(argv) # Extract Input File Name
+            if err > 0:
+                rpn_usage(subcommand)
+                print(f"\n[ERROR] No Input File: Input File Required")
+                return err
 
-    # Tokenize the List
-    token_list = rpn_tokenize_raw_list(char_list)
+            # Read the Entire test file into list in memory
+            char_list = rpn_read_entire_file(path)
 
-    # Initialize Empty Stack With Enough Capacity
-    stack = RPN_Stack([])
+            # Read the Entire test file into list in memory
+            char_list = rpn_read_entire_file(path)
 
-    # Execute the Algorithm
-    rpn(stack, token_list)
+            # Tokenize the List
+            token_list = rpn_tokenize_raw_list(char_list)
 
-    # Dump the Stack, Should Contain Final Answer
-    rpn_dump_stack(stack)
+            # Initialize Empty Stack With Enough Capacity
+            stack = RPN_Stack([])
+
+            # Execute the Algorithm
+            rpn(stack, token_list)
+
+            # Dump the Stack, Should Contain Final Answer
+            rpn_dump_stack(stack)
+
+        case "--read":
+            # Read From stdin
+            print("rpn> " , end="")
+            sys.stdout.flush()
+            for line in sys.stdin:
+                sys.stdout.flush()
+                # Remove Leading and Trailing Spaces
+                line = line.strip().split()
+
+                # Tokenize the line
+                token_list = rpn_tokenize_raw_list(line)
+
+                # Initialize Empty Stack
+                stack = RPN_Stack([])
+
+                # Execute the Algorithm
+                rpn(stack, token_list)
+
+                # Dump the Stack, Should Contain Final Answer
+                rpn_dump_stack(stack)
+                print("rpn> " , end="")
+                sys.stdout.flush()
+
+        case _:
+            rpn_usage(subcommand)
+            print(f"\n[ERROR] Unknown Argument: {arg}")
+            return 1
 
     return 0 # return Zero
 
