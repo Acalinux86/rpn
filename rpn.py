@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from enum import Enum, auto
 from dataclasses import dataclass
 
@@ -72,10 +72,10 @@ def rpn_stack_push(stack: RPN_Stack, token: RPN_Token) -> bool:
     return True
 
 # Function that Pops a token from stack
-def rpn_stack_pop(stack: RPN_Stack) -> RPN_Token:
+def rpn_stack_pop(stack: RPN_Stack) -> Optional[RPN_Token]:
     if (stack.stack_count <= 0):
         print(f"[ERROR] Attempting to Pop from Empty Stack: count: {stack.stack_count}")
-        exit(1)
+        return None
     stack.stack_count = stack.stack_count - 1
     res = stack.stack_slots.pop(stack.stack_count)
     if TRACE:
@@ -92,7 +92,7 @@ def rpn_dump_stack(stack: RPN_Stack) -> None:
         print(f"[INFO] Token: {token}")
 
 # Tokenize the Raw Character List
-def rpn_tokenize_raw_list(char_list: List[str]) -> List[RPN_Token]:
+def rpn_tokenize_raw_list(char_list: List[str]) -> Optional[List[RPN_Token]]:
     tokens = []
     for i in char_list:
         if rpn_token_digit(i):
@@ -109,10 +109,10 @@ def rpn_tokenize_raw_list(char_list: List[str]) -> List[RPN_Token]:
                     token = rpn_create_token(RPN_TokenType.TOKEN_MULT, i)
                 case _:
                     print(f"[ERROR] Unknown Opcode: `{i}`") # Exit with non-zero when no known opcode is encountered
-                    exit(1)
+                    return None
         else:
             print(f"[ERROR] Unknown operation code: {i}")
-            exit(1)
+            return None
         tokens.append(token)
 
     return tokens
@@ -131,27 +131,31 @@ def rpn(stack: RPN_Stack, test_list: List[RPN_Token]) -> bool:
             right  = rpn_stack_pop(stack) # pop top
             left   = rpn_stack_pop(stack) # pop top - 1
             result = 0.0 # var to hold result
-            if token.token_type == RPN_TokenType.TOKEN_PLUS:
-                result = float(left.token) + float(right.token) # Add
-                if TRACE:
-                    print(f"[INFO] Adding {float(left.token)} to {float(right.token)}")
-            elif token.token_type == RPN_TokenType.TOKEN_MINUS:
-                result = float(left.token) - float(right.token) # subtract
-                if TRACE:
-                    print(f"[INFO] Subtracting {float(left.token)} from {float(right.token)}")
-            elif token.token_type == RPN_TokenType.TOKEN_DIV:
-                if float(right.token) == 0:
-                    print("[ERROR] Division By Zero")
+            if right is not None and left is not None:
+                if token.token_type == RPN_TokenType.TOKEN_PLUS:
+                    result = float(left.token) + float(right.token) # Add
+                    if TRACE:
+                        print(f"[INFO] Adding {float(left.token)} to {float(right.token)}")
+                elif token.token_type == RPN_TokenType.TOKEN_MINUS:
+                    result = float(left.token) - float(right.token) # subtract
+                    if TRACE:
+                        print(f"[INFO] Subtracting {float(left.token)} from {float(right.token)}")
+                elif token.token_type == RPN_TokenType.TOKEN_DIV:
+                    if float(right.token) == 0:
+                        print("[ERROR] Division By Zero")
+                        return False
+                    result = float(left.token) / float(right.token) # divide
+                    if TRACE:
+                        print(f"[INFO] Dividing {float(left.token)} by {float(right.token)}")
+                elif token.token_type == RPN_TokenType.TOKEN_MULT:
+                    result = float(left.token) * float(right.token) # Multiply
+                    if TRACE:
+                        print(f"[INFO] Multiplying {float(left.token)} by {float(right.token)}")
+                else:
+                    print(f"[ERROR] Unknown Opcode: `{token}`") # Exit with non-zero when no known opcode is encountered
                     return False
-                result = float(left.token) / float(right.token) # divide
-                if TRACE:
-                    print(f"[INFO] Dividing {float(left.token)} by {float(right.token)}")
-            elif token.token_type == RPN_TokenType.TOKEN_MULT:
-                result = float(left.token) * float(right.token) # Multiply
-                if TRACE:
-                    print(f"[INFO] Multiplying {float(left.token)} by {float(right.token)}")
             else:
-                print(f"[ERROR] Unknown Opcode: `{token}`") # Exit with non-zero when no known opcode is encountered
+                print(f"[ERROR] Token None")
                 return False
 
             # Push the Result
@@ -206,7 +210,11 @@ def main() -> int:
             stack = RPN_Stack([])
 
             # Execute the Algorithm
-            rpn(stack, token_list)
+            if token_list is not None:
+                rpn(stack, token_list)
+            else:
+                print("[ERROR] Token list is None")
+                return 1
 
             # Dump the Stack, Should Contain Final Answer
             rpn_dump_stack(stack)
@@ -227,8 +235,12 @@ def main() -> int:
                 stack = RPN_Stack([])
 
                 # Execute the Algorithm
-                if rpn(stack, token_list) == False:
-                    return 0
+                if token_list is not None:
+                    if rpn(stack, token_list) == False:
+                        return 1
+                else:
+                    print("[ERROR] Token list is None")
+                    return 1
 
                 # Dump the Stack, Should Contain Final Answer
                 rpn_dump_stack(stack)
