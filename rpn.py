@@ -177,12 +177,14 @@ def rpn(stack, test_list):
 def rpn_usage(subcommand):
     print("USAGE] %s <options> [input-file]" % subcommand)
     print("Options:")
-    print("--help              -- Display this Help Message")
-    print("--file <input-file> -- Read From a Input File")
+    print("repl              -- Start a REPL session with RPN")
+    print("help              -- Display this Help Message")
+    print("file <input-file> -- Read From a Input File")
 
 
 def repl():
     print("RPN REPL - Reverse Polish Notation Evaluator REPL")
+    print("Enter \"quit\" to exit the REPL session")
 
     while True:
         print("rpn> " , end=" ")
@@ -190,7 +192,7 @@ def repl():
 
         # Remove Leading and Trailing Spaces
         line = sys.stdin.readline().strip().split()
-        if len(line) == 1 and line[0] == "exit":
+        if len(line) == 1 and line[0] == "quit":
             break
 
         # Tokenize the line
@@ -226,20 +228,20 @@ def main():
     program, *argv = sys.argv
     
     # Check For options
-    if len(argv) == 0:
-        repl()
-        return 0
-    elif len(argv) == 1:
-        if argv[0] == "--help":
+    if len(argv) == 1:
+        if argv[0] == "help":
             rpn_usage(program)
             return 1
+        elif argv[0] == "repl":
+            repl()
+            return 0
         else:
             rpn_usage(program)
             print("")
             print(f"[ERROR] Unrecognized Option: {argv[0]}")
             return 1
     elif len(argv) == 2:
-        if argv[0] == "--file":
+        if argv[0] == "file":
             run_file(argv[1])
             return 1
         else:
@@ -248,6 +250,9 @@ def main():
             print(f"[ERROR] Unrecognized Option: {argv[0]}")
             return 1
     else:
+        rpn_usage(program)
+        print("")
+        print("[ERROR] No Options Given")
         return 1
 
 
